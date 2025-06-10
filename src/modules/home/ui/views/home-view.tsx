@@ -14,7 +14,7 @@ const HomeView = () => {
 
     return (
         <div className="flex flex-col p-4 gap-y-4">
-            <p>Logged in as {session.user.name}</p>
+            <p className='hover:text-blue-300'>Logged in as {session.user.name}</p>
             <Button onClick={() => authClient.signOut({
                 fetchOptions: {
                     onSuccess: () => {
