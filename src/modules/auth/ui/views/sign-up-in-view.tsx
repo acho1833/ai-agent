@@ -1,9 +1,8 @@
 'use client';
 
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useForm } from 'react-hook-form';
-import z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
     Form,
     FormControl,
@@ -13,13 +12,15 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertTitle } from '@/components/ui/alert';
+import { authClient } from '@/lib/auth-client';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { OctagonAlertIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { authClient } from '@/lib/auth-client';
+import { useForm } from 'react-hook-form';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
+import z from 'zod';
 
 const formSchema = z
     .object({
@@ -55,11 +56,34 @@ export const SignUpView = () => {
             {
                 name: data.name,
                 email: data.email,
-                password: data.password,
+                password: data.password
             },
             {
                 onSuccess: () => {
                     router.push('/');
+                },
+                onError: ({ error }) => {
+                    setError(error.message);
+                },
+                onSettled: () => {
+                    setPending(false);
+                },
+            },
+        );
+    };
+
+    const onSocial = (provider: 'github' | 'google') => {
+        setError(null);
+        setPending(true);
+
+        authClient.signIn.social(
+            {
+                provider,
+                callbackURL: '/'
+            },
+            {
+                onSuccess: () => {
+                    // router.push('/');
                 },
                 onError: ({ error }) => {
                     setError(error.message);
@@ -180,16 +204,18 @@ export const SignUpView = () => {
                                         className="w-full"
                                         type="button"
                                         disabled={pending}
+                                        onClick={() => onSocial('google')}
                                     >
-                                        Google
+                                        <FaGoogle />
                                     </Button>
                                     <Button
                                         variant="outline"
                                         className="w-full"
                                         type="button"
                                         disabled={pending}
+                                        onClick={() => onSocial('github')}
                                     >
-                                        GitHub
+                                        <FaGithub />
                                     </Button>
                                 </div>
                                 <div className="text-center text-sm">

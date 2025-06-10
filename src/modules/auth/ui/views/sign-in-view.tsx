@@ -1,9 +1,8 @@
 'use client';
 
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useForm } from 'react-hook-form';
-import z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
     Form,
     FormControl,
@@ -13,13 +12,14 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertTitle } from '@/components/ui/alert';
-import { OctagonAlertIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { OctagonAlertIcon } from 'lucide-react';
+import { FaGithub, FaGoogle } from 'react-icons/fa';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -27,7 +27,6 @@ const formSchema = z.object({
 });
 
 export const SignInView = () => {
-    const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({
@@ -46,10 +45,33 @@ export const SignInView = () => {
             {
                 email: data.email,
                 password: data.password,
+                callbackURL: '/',
             },
             {
                 onSuccess: () => {
-                    router.push('/');
+                    // router.push('/');
+                },
+                onError: ({ error }) => {
+                    setError(error.message);
+                },
+                onSettled: () => {
+                    setPending(false);
+                },
+            },
+        );
+    };
+
+    const onSocial = (provider: 'github' | 'google') => {
+        setError(null);
+        setPending(true);
+
+        authClient.signIn.social(
+            {
+                provider,
+                callbackURL: '/'
+            },
+            {
+                onSuccess: () => {
                 },
                 onError: ({ error }) => {
                     setError(error.message);
@@ -127,11 +149,23 @@ export const SignInView = () => {
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <Button variant="outline" className="w-full" type="button" disabled={pending}>
-                                        Google
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        type="button"
+                                        disabled={pending}
+                                        onClick={() => onSocial('google')}
+                                    >
+                                        <FaGoogle />
                                     </Button>
-                                    <Button variant="outline" className="w-full" type="button" disabled={pending}>
-                                        GitHub
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        type="button"
+                                        disabled={pending}
+                                        onClick={() => onSocial('github')}
+                                    >
+                                        <FaGithub />
                                     </Button>
                                 </div>
                                 <div className="text-center text-sm">
