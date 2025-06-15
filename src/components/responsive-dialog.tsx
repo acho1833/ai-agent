@@ -48,7 +48,6 @@ const ResponsiveDialog = ({ title, description, children, open, onOpenChange }: 
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
-                    <div className="p-4">{children}</div>
                 </DialogHeader>
                 {children}
             </DialogContent>
