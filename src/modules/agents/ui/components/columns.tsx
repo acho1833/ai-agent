@@ -13,11 +13,13 @@ export const columns: ColumnDef<AgentGetOne>[] = [
         cell: ({ row }) => (
             <div className="flex flex-col gap-y-1">
                 <div className="flex items-center gap-x-2">
-                    <GeneratedAvatar
-                        seed={row.original.name}
-                        variant="botttsNeutral"
-                        className="size-6"
-                    />
+                    {row.original.name && (
+                        <GeneratedAvatar
+                            seed={row.original.name}
+                            variant="botttsNeutral"
+                            className="size-6"
+                        />
+                    )}
                     <span className="font-semibold capitalize">{row.original.name}</span>
                 </div>
                 <div className="flex items-center gap-x-2">

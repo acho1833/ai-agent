@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 import NewAgentDialog from '@/modules/agents/ui/components/new-agent-dialog';
 import { useState } from 'react';
+import { useAgentsFilters } from '@/modules/agents/hooks/use-agents-filters';
 
 const AgentsListHeader = () => {
+    const [filter, setFilter] = useAgentsFilters();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     return (

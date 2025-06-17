@@ -50,7 +50,7 @@ const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
         } else {
             createAgent.mutate(values, {
                 onSuccess: async (data) => {
-                    await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions());
+                    await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
 
                     if (initialValues?.id) {
                         await queryClient.invalidateQueries(trpc.agents.getOne.queryOptions({ id: initialValues.id }));
