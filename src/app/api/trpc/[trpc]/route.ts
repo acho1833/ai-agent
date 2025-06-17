@@ -3,9 +3,6 @@ import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { createTRPCContext } from '@/trpc/init';
 
 const handler = (req: Request) => {
-
-    console.log('req', req);
-
     return fetchRequestHandler({
         endpoint: '/api/trpc',
         req,

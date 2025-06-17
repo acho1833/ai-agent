@@ -46,7 +46,6 @@ const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
     const onSubmit = (values: z.infer<typeof agentsInsertSchema>) => {
         if (isEdit) {
             // Handle edit logic here
-            console.log('Editing agent:', values);
             // You can call a mutation to update the agent
         } else {
             createAgent.mutate(values, {
