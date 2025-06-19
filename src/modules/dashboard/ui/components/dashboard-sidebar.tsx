@@ -11,6 +11,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { BotIcon, StarIcon, VideoIcon } from 'lucide-react';
@@ -42,6 +43,7 @@ const secondSection = [
 
 const DashboardSidebar = () => {
     const pathname = usePathname();
+    const { toggleSidebar } = useSidebar();
 
     return (
         <Sidebar>
@@ -88,14 +90,15 @@ const DashboardSidebar = () => {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {secondSection.map((item) => (
-                                <SidebarMenuItem key={item.href}>
+                                <SidebarMenuItem key={item.href} onClick={() => {
+                                }}>
                                     <SidebarMenuButton
                                         className={cn(
                                             'h-10 hover:bg-linear-to-r/oklch border border-transparent hover:border-[#5D6B68]/10 from-sidebar-accent from-5% via-30% via-sidebar/50 to-sidebar/50',
                                             pathname === item.href &&
                                                 'bg-linear-to-r/oklch border-[#5D6B68]/10',
                                         )}
-                                        isActive={pathname === item.href}
+                                        isActive={pathname === item.href}                        
                                         asChild
                                     >
                                         <Link href={item.href}>
