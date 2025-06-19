@@ -1,13 +1,42 @@
 import { db } from '@/db';
 import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 import { agents } from '@/db/schema';
-import { agentsInsertSchema } from '@/modules/agents/schema';
+import { agentsInsertSchema, agentsUpdateSchema } from '@/modules/agents/schema';
 import z from 'zod';
 import { and, count, desc, eq, getTableColumns, ilike, sql } from 'drizzle-orm';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from '@/constants';
 import { TRPCError } from '@trpc/server';
 
 export const agentsRouter = createTRPCRouter({
+    update: protectedProcedure.input(agentsUpdateSchema).mutation(async ({ input, ctx }) => {
+        const [updatedAgent] = await db
+            .update(agents)
+            .set(input)
+            .where(and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id)))
+            .returning();
+
+        if (!updatedAgent) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found.' });
+        }
+
+        return updatedAgent;
+    }),
+    remove: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            const [removedAgent] = await db
+                .delete(agents)
+                .where(and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id)))
+                .returning();
+            if (!removedAgent) {
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found.' });
+            }
+            return removedAgent;
+        }),
     getOne: protectedProcedure
         .input(
             z.object({
@@ -24,7 +53,7 @@ export const agentsRouter = createTRPCRouter({
                 .where(and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id)));
 
             if (!existingAgent) {
-                throw new TRPCError({code: 'NOT_FOUND', message: 'Agent not found.' });
+                throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found.' });
             }
 
             return existingAgent;
