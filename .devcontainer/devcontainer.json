@@ -1,4 +1,6 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:latest",
-  "features": {}
+  "features": {
+    "ghcr.io/devcontainers-extra/features/typescript:2": {}
+  }
 }
