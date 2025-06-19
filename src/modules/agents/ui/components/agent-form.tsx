@@ -7,7 +7,14 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { agentsInsertSchema } from '@/modules/agents/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { GeneratedAvatar } from '@/components/generated-avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,8 +34,35 @@ const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
 
     const createAgent = useMutation(
         trpc.agents.create.mutationOptions({
-            onSuccess: () => {},
-            onError: () => {},
+            onSuccess: async () => {
+                await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
+
+                onSuccess?.();
+                // router.push(`/agents/${data.id}`);
+            },
+            onError: (error) => {
+                toast.error(error.message);
+            },
+        }),
+    );
+
+    const updateAgent = useMutation(
+        trpc.agents.update.mutationOptions({
+            onSuccess: async () => {
+                await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
+
+                if (initialValues?.id) {
+                    await queryClient.invalidateQueries(
+                        trpc.agents.getOne.queryOptions({ id: initialValues.id }),
+                    );
+                }
+
+                onSuccess?.();
+                // router.push(`/agents/${data.id}`);
+            },
+            onError: (error) => {
+                toast.error(error.message);
+            },
         }),
     );
 
@@ -41,28 +75,16 @@ const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
     });
 
     const isEdit = !!initialValues?.id;
-    const isPending = createAgent.isPending;
+    const isPending = createAgent.isPending || updateAgent.isPending;
 
     const onSubmit = (values: z.infer<typeof agentsInsertSchema>) => {
         if (isEdit) {
-            // Handle edit logic here
-            // You can call a mutation to update the agent
-        } else {
-            createAgent.mutate(values, {
-                onSuccess: async (data) => {
-                    await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
-
-                    if (initialValues?.id) {
-                        await queryClient.invalidateQueries(trpc.agents.getOne.queryOptions({ id: initialValues.id }));
-                    }
-
-                    onSuccess?.();
-                    // router.push(`/agents/${data.id}`);
-                },
-                onError: (error) => {
-                    toast.error(error.message);
-                },
+            updateAgent.mutate({
+                ...values,
+                id: initialValues.id,
             });
+        } else {
+            createAgent.mutate(values);
         }
     };
 
@@ -103,7 +125,7 @@ const AgentForm = ({ initialValues, onSuccess, onCancel }: Props) => {
                     name="instructions"
                     control={form.control}
                 />
-                <div className='flex justify-between gap-x-2'>
+                <div className="flex justify-between gap-x-2">
                     {onCancel && (
                         <Button
                             variant="ghost"
