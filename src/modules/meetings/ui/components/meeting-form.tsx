@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -22,6 +23,7 @@ import { meetingsInsertSchema } from '../../schema';
 import { MeetingGetOne } from '../../types';
 import { useState } from 'react';
 import CommandSelect from '@/components/command-select';
+import NewAgentDialog from '@/modules/agents/ui/components/new-agent-dialog';
 
 type Props = {
     onSuccess?: (id?: string) => void;
@@ -33,7 +35,7 @@ const MeetingForm = ({ initialValues, onSuccess, onCancel }: Props) => {
     const trpc = useTRPC();
     // const router = useRouter();
     const queryClient = useQueryClient();
-    const [open, setOpen] = useState(false);
+    const [openNewAgentDialog, setOpenNewAgentDialog] = useState(false);
     const [agentSearch, setAgentSearch] = useState('');
     const agents = useQuery(
         trpc.agents.getMany.queryOptions({
@@ -99,72 +101,85 @@ const MeetingForm = ({ initialValues, onSuccess, onCancel }: Props) => {
     };
 
     return (
-        <Form {...form}>
-            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                <FormField
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                                <Input {...field} placeholder="e.g. Math Consultations" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    name="name"
-                    control={form.control}
-                />
-                <FormField
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Agent</FormLabel>
-                            <FormControl>
-                                <CommandSelect
-                                    options={(agents.data?.items ?? []).map((agent) => {
-                                        return {
-                                            id: agent.id,
-                                            value: agent.id,
-                                            children: (
-                                                <div className="flex items-center gap-x-2">
-                                                    <GeneratedAvatar
-                                                        seed={agent.name}
-                                                        variant="botttsNeutral"
-                                                        className="border size-6"
-                                                    />
-                                                    <span>{agent.name}</span>
-                                                </div>
-                                            ),
-                                        };
-                                    })}
-                                    onSelect={(value) => field.onChange(value)}
-                                    onSearch={(search) => setAgentSearch(search)}
-                                    value={field.value}
-                                    placeholder="Select an agent"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    name="agentId"
-                    control={form.control}
-                />
-                <div className="flex justify-between gap-x-2">
-                    {onCancel && (
-                        <Button
-                            variant="ghost"
-                            disabled={isPending}
-                            type="button"
-                            onClick={() => onCancel()}
-                        >
-                            Cancel
+        <>
+            <NewAgentDialog open={openNewAgentDialog} onOpenChange={setOpenNewAgentDialog} />
+            <Form {...form}>
+                <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                    <FormField
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Name</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="e.g. Math Consultations" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        name="name"
+                        control={form.control}
+                    />
+                    <FormField
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Agent</FormLabel>
+                                <FormControl>
+                                    <CommandSelect
+                                        options={(agents.data?.items ?? []).map((agent) => {
+                                            return {
+                                                id: agent.id,
+                                                value: agent.id,
+                                                children: (
+                                                    <div className="flex items-center gap-x-2">
+                                                        <GeneratedAvatar
+                                                            seed={agent.name}
+                                                            variant="botttsNeutral"
+                                                            className="border size-6"
+                                                        />
+                                                        <span>{agent.name}</span>
+                                                    </div>
+                                                ),
+                                            };
+                                        })}
+                                        onSelect={(value) => field.onChange(value)}
+                                        onSearch={(search) => setAgentSearch(search)}
+                                        value={field.value}
+                                        placeholder="Select an agent"
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    Not found what you are looking for?{' '}
+                                    <button
+                                        type="button"
+                                        className="text-primary hover:underline"
+                                        onClick={() => setOpenNewAgentDialog(true)}
+                                    >
+                                        Create new agent
+                                    </button>
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        name="agentId"
+                        control={form.control}
+                    />
+                    <div className="flex justify-between gap-x-2">
+                        {onCancel && (
+                            <Button
+                                variant="ghost"
+                                disabled={isPending}
+                                type="button"
+                                onClick={() => onCancel()}
+                            >
+                                Cancel
+                            </Button>
+                        )}
+                        <Button type="submit" disabled={isPending}>
+                            {isEdit ? 'Update' : 'Create'}
                         </Button>
-                    )}
-                    <Button type="submit" disabled={isPending}>
-                        {isEdit ? 'Update' : 'Create'}
-                    </Button>
-                </div>
-            </form>
-        </Form>
+                    </div>
+                </form>
+            </Form>
+        </>
     );
 };
 

@@ -3,7 +3,13 @@ import { Button } from './ui/button';
 import { Chevron } from 'react-day-picker';
 import { ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CommandInput, CommandItem, CommandList, CommandResponsiveDialog } from './ui/command';
+import {
+    CommandEmpty,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandResponsiveDialog,
+} from './ui/command';
 
 type Props = {
     options: Array<{
@@ -46,13 +52,11 @@ const CommandSelect = ({
                 <div>{selectedOption?.children ?? placeholder}</div>
                 <ChevronDownIcon />
             </Button>
-            <CommandResponsiveDialog open={open} onOpenChange={setOpen}>
+            <CommandResponsiveDialog open={open} onOpenChange={setOpen} shouldFilter={!onSearch}>
                 <CommandInput placeholder="Search..." onValueChange={onSearch} />
-                {options.length === 0 && (
-                    <CommandList>
-                        <span className="text-muted-forground text-sm">No options found</span>
-                    </CommandList>
-                )}
+                <CommandEmpty>
+                    <span className="text-muted-forground text-sm">No options found</span>
+                </CommandEmpty>
                 {options.map((option) => (
                     <CommandItem
                         key={option.id}
