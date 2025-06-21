@@ -3,12 +3,12 @@ import React from 'react';
 import { useTRPC } from '@/trpc/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import LoadingState from '@/components/loading-state';
-import { DataTable } from '@/modules/agents/ui/components/data-table';
 import { columns } from '@/modules/agents/ui/components/columns';
 import EmptyState from '@/components/empty-state';
 import { useAgentsFilters } from '@/modules/agents/hooks/use-agents-filters';
 import DataPagination from '../components/data-pagination';
 import { useRouter } from 'next/navigation';
+import { DataTable } from '@/components/data-table';
 
 export const AgentsViewLoading = () => {
     return <LoadingState title="Loading Agents" description="This may take few seconds" />;
