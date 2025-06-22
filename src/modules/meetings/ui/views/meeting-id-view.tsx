@@ -10,6 +10,9 @@ import { useConfirm } from '@/hooks/use-confirm';
 import UpdateMeetingDialog from '../components/update-meeting-dialog';
 import { useState } from 'react';
 import UpcomingState from '../components/upcoming-state';
+import ActiveState from '../components/active-state';
+import CancelState from '../components/cancel-state';
+import ProcessingState from '../components/processing-state';
 
 type Props = {
     meetingId: string;
@@ -77,11 +80,17 @@ const MeetingIdView = ({ meetingId }: Props) => {
                     onEdit={() => setUpdateMeetingDialogOpen(true)}
                     onRemove={handleRemoveMeeting}
                 />
-                {isActive && <div>Active</div>}
-                {isCancelled && <div> Cancelled </div>}
-                {isProcessing && <div>Processing</div>}
+                {isActive && <ActiveState meetingId={meetingId} />}
+                {isCancelled && <CancelState meetingId={meetingId} />}
+                {isProcessing && <ProcessingState meetingId={meetingId} />}
                 {isCompleted && <div>Completed</div>}
-                {isUpcoming && <UpcomingState />}
+                {isUpcoming && (
+                    <UpcomingState
+                        meetingId={meetingId}
+                        isCanceling={false}
+                        onCancelMeeting={() => {}}
+                    />
+                )}
                 {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
             </div>
         </>
