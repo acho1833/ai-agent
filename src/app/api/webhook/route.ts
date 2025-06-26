@@ -1,10 +1,14 @@
 import { db } from '@/db';
 import { agents, meetings } from '@/db/schema';
+import { inngest } from '@/inngest/client';
 import { streamVideo } from '@/lib/stream-video';
-import { CallSessionParticipantLeftEvent } from '@stream-io/node-sdk';
-import { createRealtimeClient } from '@stream-io/openai-realtime-api';
-import { CallSessionStartedEvent } from '@stream-io/video-react-sdk';
-import { eq, and, not } from 'drizzle-orm';
+import { CallSessionParticipantLeftEvent, CallTranscriptionReadyEvent } from '@stream-io/node-sdk';
+import {
+    CallEndedEvent,
+    CallRecordingReadyEvent,
+    CallSessionStartedEvent,
+} from '@stream-io/video-react-sdk';
+import { and, eq, not } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 
 function verifySignature(body: string, signature: string): boolean {
@@ -38,8 +42,6 @@ export async function POST(req: NextRequest) {
     console.log('eventType', eventType);
 
     if (eventType === 'call.session_started') {
-
-
         const event = payload as CallSessionStartedEvent;
         const meetingId = event.call.custom?.meetingId as string;
 
@@ -107,6 +109,61 @@ export async function POST(req: NextRequest) {
 
         const call = streamVideo.video.call('default', meetingId);
         await call.end();
+    } else if (eventType === 'call.session_ended') {
+        const event = payload as CallEndedEvent;
+        const meetingId = event.call.custom?.meetingId as string;
+        if (!meetingId) {
+            return NextResponse.json(
+                { error: 'Missing meetingId in call session ended event' },
+                { status: 400 },
+            );
+        }
+
+        await db
+            .update(meetings)
+            .set({ status: 'processing', endedAt: new Date() })
+            .where(and(eq(meetings.id, meetingId), eq(meetings.status, 'active')));
+    } else if (eventType === 'call.transcription_ready') {
+        const event = payload as CallTranscriptionReadyEvent;
+        const meetingId = event.call_cid.split(':')[1];
+        if (!meetingId) {
+            return NextResponse.json(
+                { error: 'Missing meetingId in call transcription ready event' },
+                { status: 400 },
+            );
+        }
+
+        const [updatedMeeting] = await db
+            .update(meetings)
+            .set({ transcriptUrl: event.call_transcription.url })
+            .where(and(eq(meetings.id, meetingId)))
+            .returning();
+
+        if (!updatedMeeting) {
+            return NextResponse.json({ error: 'Meeting not found' }, { status: 404 });
+        }
+
+        await inngest.send({
+            name: 'meetings/processing',
+            data: {
+                meetingId: updatedMeeting.id,
+                transcriptUrl: updatedMeeting.transcriptUrl,
+            },
+        });
+    } else if (eventType === 'call.recording_ready') {
+        const event = payload as CallRecordingReadyEvent;
+        const meetingId = event.call_cid.split(':')[1];
+        if (!meetingId) {
+            return NextResponse.json(
+                { error: 'Missing meetingId in call transcription ready event' },
+                { status: 400 },
+            );
+        }
+
+        await db
+            .update(meetings)
+            .set({ recordingUrl: event.call_recording.url })
+            .where(and(eq(meetings.id, meetingId)));
     }
 
     // Handle other event types as needed
