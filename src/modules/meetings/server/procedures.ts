@@ -11,8 +11,17 @@ import { streamVideo } from '@/lib/stream-video';
 import { generateAvatarUri } from '@/lib/avatar';
 import JSONL from 'jsonl-parse-stringify';
 import { Users } from 'lucide-react';
+import { streamChat } from '@/lib/stream-chat';
 
 export const meetingsRouter = createTRPCRouter({
+    generateChatToken: protectedProcedure.mutation(async ({ ctx }) => {
+        const token = streamChat.createToken(ctx.auth.user.id);
+        await streamChat.upsertUser({
+            id: ctx.auth.user.id,
+            role: 'admin',
+        });
+        return token;
+    }),
     getTranscript: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ input, ctx }) => {
@@ -93,7 +102,7 @@ export const meetingsRouter = createTRPCRouter({
                         image: speaker.image,
                     },
                 };
-            }); 
+            });
 
             return transcriptWithSpeakers;
         }),
@@ -158,8 +167,7 @@ export const meetingsRouter = createTRPCRouter({
         if (!existingAgent) {
             throw new TRPCError({
                 code: 'NOT_FOUND',
-                message: 'Agent not found.',
-                e,
+                message: 'Agent not found.'
             });
         }
 
